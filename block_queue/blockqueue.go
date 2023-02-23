@@ -21,6 +21,7 @@ func (b *BlockQueue[T]) Enqueue(ctx context.Context, val T) error {
 	for b.number == b.maxSize {
 		err := b.fullCond.WaitTimeOut(ctx)
 		if err != nil {
+			b.mu.Unlock()
 			return err
 		}
 	}
@@ -37,6 +38,7 @@ func (b *BlockQueue[T]) Dequeue(ctx context.Context) (T, error) {
 	for b.number == 0 {
 		err := b.emptyCond.WaitTimeOut(ctx)
 		if err != nil {
+			b.mu.Unlock()
 			var t T
 			return t, err
 		}
